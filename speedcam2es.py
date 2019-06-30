@@ -11,25 +11,19 @@ import socket
 from subprocess import check_output
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-DB_PATH = '/home/pi/speed-camera/data/speed_cam.db'
-DB_TABLE = 'speed'
-REPORT_QUERY = ('''select * from speed order by idx desc''')
-IP_ADDRESS = check_output(['hostname', '--all-ip-addresses']).strip()
 
-mypath = os.path.abspath(__file__)  # Find the full path of this python script
+
+my_path = os.path.abspath(__file__)  # Find the full path of this python script
 # get the path location only (excluding script name)
-baseDir = mypath[0:mypath.rfind("/")+1]
-baseFileName = mypath[mypath.rfind("/")+1:mypath.rfind(".")]
-progName = os.path.basename(__file__)
-horz_line = "----------------------------------------------------------------------"
-print(horz_line)
-print("%s %s   written by Richie Jarvis to work with Claude Pageau's speed_cam available here: https://github.com/pageauc/speed-camera" % (progName, version))
+base_dir = my_path[0:my_path.rfind("/")+1]
+base_file_name = my_path[my_path.rfind("/")+1:my_path.rfind(".")]
+prog_name = os.path.basename(__file__)
 
 # Check for variable file to import and error out if not found.
-configFilePath = os.path.join(baseDir, "config.py")
-if not os.path.exists(configFilePath):
+config_file_path = os.path.join(base_dir, "config.py")
+if not os.path.exists(config_file_path):
     print("ERROR : Missing config.py file - File Not Found %s"
-          % configFilePath)
+          % config_file_path)
     import urllib2
     config_url = "https://raw.githubusercontent.com/richiejarvis/speedcam2es/master/config.py"
     print("INFO  : Attempting to Download config.py file from %s" % config_url)
@@ -37,7 +31,7 @@ if not os.path.exists(configFilePath):
         wgetfile = urllib2.urlopen(config_url)
     except:
         print("ERROR : Download of config.py Failed")
-        print("        %s %s Exiting Due to Error" % (progName, progVer))
+        print("        %s %s Exiting Due to Error" % (prog_name, version))
         sys.exit(1)
     f = open('config.py', 'wb')
     f.write(wgetfile.read())
@@ -45,17 +39,20 @@ if not os.path.exists(configFilePath):
 # Read Configuration variables from config.py file
 from config import *
 
+horz_line = "----------------------------------------------------------------------"
+print(horz_line)
+print("%s %s   written by Richie Jarvis to work with Claude Pageau's speed_cam available here: https://github.com/pageauc/speed-camera" % (prog_name, version))
 
 def Main():
-    connection = sqlite3.connect(DB_PATH)
+    connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
     cursor = connection.cursor()
-    cursor.execute(REPORT_QUERY)
+    cursor.execute(report_query)
     while True:
         row = cursor.fetchone()
         if row is None:
             break
-        unique_hash = hashlib.sha1(str(tuple(row)) + IP_ADDRESS).hexdigest()
+        unique_hash = hashlib.sha1(str(tuple(row)) + ip_address).hexdigest()
         if row["direction"] == "L2R":
             direction = "Southbound"
         else:
@@ -64,10 +61,10 @@ def Main():
                 '@timestamp' : make_date(row["idx"]),
                 'speed' : row["ave_speed"],
                 'direction' : direction,
-                'source' : IP_ADDRESS
+                'source' : ip_address
                 }
         #print(repr(record))
-        url = elasticsearch_url + IP_ADDRESS + '-' + row["log_date"] + '/record/'+unique_hash
+        url = elasticsearch_url + ip_address + '-' + row["log_date"] + '/record/'+unique_hash
         resp = requests.post(url,auth=(username,password),verify=False,json=record)
         print(unique_hash + ": " + str(resp.status_code))
         if resp.status_code == 200:
