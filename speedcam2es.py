@@ -23,7 +23,7 @@ baseFileName = mypath[mypath.rfind("/")+1:mypath.rfind(".")]
 progName = os.path.basename(__file__)
 horz_line = "----------------------------------------------------------------------"
 print(horz_line)
-print("%s %s   written by Richie Jarvis to work with Claude Pageau's speed_cam available here: https://github.com/pageauc/speed-camera" % (progName, progVer))
+print("%s %s   written by Richie Jarvis to work with Claude Pageau's speed_cam available here: https://github.com/pageauc/speed-camera" % (progName, version))
 
 # Check for variable file to import and error out if not found.
 configFilePath = os.path.join(baseDir, "config.py")
