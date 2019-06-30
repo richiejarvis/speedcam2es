@@ -16,6 +16,36 @@ DB_TABLE = 'speed'
 REPORT_QUERY = ('''select * from speed order by idx desc''')
 IP_ADDRESS = check_output(['hostname', '--all-ip-addresses']).strip()
 
+mypath = os.path.abspath(__file__)  # Find the full path of this python script
+# get the path location only (excluding script name)
+baseDir = mypath[0:mypath.rfind("/")+1]
+baseFileName = mypath[mypath.rfind("/")+1:mypath.rfind(".")]
+progName = os.path.basename(__file__)
+horz_line = "----------------------------------------------------------------------"
+print(horz_line)
+print("%s %s   written by Richie Jarvis to work with Claude Pageau's speed_cam available here: https://github.com/pageauc/speed-camera" % (progName, progVer))
+
+# Check for variable file to import and error out if not found.
+configFilePath = os.path.join(baseDir, "config.py")
+if not os.path.exists(configFilePath):
+    print("ERROR : Missing config.py file - File Not Found %s"
+          % configFilePath)
+    import urllib2
+    config_url = "https://raw.githubusercontent.com/richiejarvis/speedcam2es/master/config.py"
+    print("INFO  : Attempting to Download config.py file from %s" % config_url)
+    try:
+        wgetfile = urllib2.urlopen(config_url)
+    except:
+        print("ERROR : Download of config.py Failed")
+        print("        %s %s Exiting Due to Error" % (progName, progVer))
+        sys.exit(1)
+    f = open('config.py', 'wb')
+    f.write(wgetfile.read())
+    f.close()
+# Read Configuration variables from config.py file
+from config import *
+
+
 def Main():
     connection = sqlite3.connect(DB_PATH)
     connection.row_factory = sqlite3.Row
@@ -30,15 +60,15 @@ def Main():
             direction = "Southbound"
         else:
             direction = "Northbound"
-        record = { 
+        record = {
                 '@timestamp' : make_date(row["idx"]),
                 'speed' : row["ave_speed"],
                 'direction' : direction,
                 'source' : IP_ADDRESS
                 }
         #print(repr(record))
-        url = 'https://172.24.42.100:9243/chailey-' + IP_ADDRESS + '-' + row["log_date"] + '/record/'+unique_hash
-        resp = requests.post(url,auth=('elastic','yF1PQEh8AfiMquEG0sSW'),verify=False,json=record)
+        url = elasticsearch_url + IP_ADDRESS + '-' + row["log_date"] + '/record/'+unique_hash
+        resp = requests.post(url,auth=(username,password),verify=False,json=record)
         print(unique_hash + ": " + str(resp.status_code))
         if resp.status_code == 200:
             break
@@ -57,7 +87,7 @@ def make_date(string):
     # yyyy-mm-dd-hh:mmsss
     string = string[:16] + ':00'
     # yyyy-mm-dd-hh:mm:sss
-    string = string[:19].strip() + 'Europe/London'
+    string = string[:19].strip() + timezone
     return string
 
 
