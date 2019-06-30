@@ -9,6 +9,7 @@ import requests
 import urllib3
 import socket
 from subprocess import check_output
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
@@ -52,39 +53,37 @@ def Main():
         row = cursor.fetchone()
         if row is None:
             break
-        unique_hash = hashlib.sha1(str(tuple(row)) + ip_address).hexdigest()
+        unique_hash = hashlib.sha1(str(tuple(row)) + camera_name).hexdigest()
         if row["direction"] == "L2R":
             direction = "Southbound"
         else:
             direction = "Northbound"
+        timestamp =  make_date(row["idx"])
         record = {
-                '@timestamp' : make_date(row["idx"]),
+                '@timestamp' : timestamp,
                 'speed' : row["ave_speed"],
                 'direction' : direction,
-                'source' : ip_address
+                'source' : camera_name
                 }
-        #print(repr(record))
-        url = elasticsearch_url + ip_address + '-' + row["log_date"] + '/record/'+unique_hash
+#        print(repr(record))
+        url = (elasticsearch_url + camera_name + '-' + timestamp[0:10] + '/record/' + unique_hash).lower()
+#        print(url)
         resp = requests.post(url,auth=(username,password),verify=False,json=record)
-        print(unique_hash + ": " + str(resp.status_code))
-        if resp.status_code == 200:
+        print(str(record) + str(resp))
+        if resp.status_code not in (201,200):
             break
     cursor.close()
     connection.close
 
 def make_date(string):
-    # yyyymmdd-hhmmsss
-    string = string[:4] + '-' + string[4:]
-    # yyyy-mmdd-hhmmsss
-    string = string[:7] + '-' + string[7:]
-    # yyyy-mm-dd-hhmmsss
-    string = string[:10] + 'T' + string[11:]
-    # yyyy-mm-ddThhmmsss
-    string = string[:13] + ':' + string[13:]
-    # yyyy-mm-dd-hh:mmsss
-    string = string[:16] + ':00'
-    # yyyy-mm-dd-hh:mm:sss
-    string = string[:19].strip() + timezone
+    # 0123456789012345
+    # YYYYMMDD-hhmmsss
+    YYYY = string[0:4] 
+    MM = string[4:6]
+    DD = string[6:8]
+    hh = string[9:11]
+    mm = string[11:13]
+    string = (YYYY + '-' + MM + '-' + DD + 'T' + hh + ':'+ mm + ':00' + timezone).strip()
     return string
 
 
