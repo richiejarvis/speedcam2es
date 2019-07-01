@@ -40,18 +40,19 @@ if not os.path.exists(config_file_path):
 # Read Configuration variables from config.py file
 from config import *
 
-print("%s %s   Author:Richie Jarvis to work with Claude Pageau's speed_cam available here: https://github.com/pageauc/speed-camera" % (prog_name, version))
-print("Version: %s" % (version))
-print("Author: Richie Jarvis")
-print("Date: 2019-07-01")
-print("GitHub: https://github.com/richiejarvis/speedcam2es")
-print("Description: Convert speed-camera.py sqlite3 db to Elasticsearch Document")
-print("             speed-camera.py written by Claude Pageau:  https://github.com/pageauc/speed-camera")
-
 def Main():
+    print("%s %s   Author:Richie Jarvis to work with Claude Pageau's speed_cam available here: https://github.com/pageauc/speed-camera" % (prog_name, version))
+    print("Version: %s" % (version))
+    print("Author: Richie Jarvis")
+    print("Date: 2019-07-01")
+    print("GitHub: https://github.com/richiejarvis/speedcam2es")
+    print("Description: Convert speed-camera.py sqlite3 db to Elasticsearch Document")
+    print("             speed-camera.py written by Claude Pageau:  https://github.com/pageauc/speed-camera")
+
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
     cursor = connection.cursor()
+    # print(report_query)
     cursor.execute(report_query)
     while True:
         row = cursor.fetchone()
@@ -73,11 +74,12 @@ def Main():
         url = (elasticsearch_url + camera_name + '-' + timestamp[0:10] + '/record/' + unique_hash).lower()
 #        print(url)
         resp = requests.post(url,auth=(username,password),verify=False,json=record)
-        print(str(record) + str(resp))
+        print(str(record) + resp.text)
         if resp.status_code not in (201,200):
             break
     cursor.close()
     connection.close
+    print("Completed")
 
 def make_date(string):
     # 0123456789012345

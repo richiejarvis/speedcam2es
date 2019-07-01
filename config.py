@@ -5,8 +5,9 @@ username = "chailey"
 password = "chailey123"
 elasticsearch_url = "https://jd:9243/chailey-"
 timezone = "Europe/London"
-db_path = '/home/pi/speed-camera/data/speed_cam.db'
+db_path = '/home/pi/speedcam2es/data/speed_cam.db'
 db_table = 'speed'
 #report_query = ('''select * from speed order by idx desc''')
-report_query = ('''select * from speed where log_hour > strftime('%H',time('now')) and log_date = strftime('%Y%m%d',date('now')) order by idx desc''')
+report_query = ('''select * from speed where log_hour = strftime('%H',time('now','+01:00')) and log_date = strftime('%Y%m%d',date('now')) order by idx desc''')
+#report_query = ('''select * from speed where log_date = strftime('%Y%m%d',date('now')) order by idx desc''')
 camera_name = "grantham_close_1"
