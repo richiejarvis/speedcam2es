@@ -40,9 +40,13 @@ if not os.path.exists(config_file_path):
 # Read Configuration variables from config.py file
 from config import *
 
-horz_line = "----------------------------------------------------------------------"
-print(horz_line)
-print("%s %s   written by Richie Jarvis to work with Claude Pageau's speed_cam available here: https://github.com/pageauc/speed-camera" % (prog_name, version))
+print("%s %s   Author:Richie Jarvis to work with Claude Pageau's speed_cam available here: https://github.com/pageauc/speed-camera" % (prog_name, version))
+print("Version: %s" % (version))
+print("Author: Richie Jarvis")
+print("Date: 2019-07-01")
+print("GitHub: https://github.com/richiejarvis/speedcam2es")
+print("Description: Convert speed-camera.py sqlite3 db to Elasticsearch Document")
+print("             speed-camera.py written by Claude Pageau:  https://github.com/pageauc/speed-camera")
 
 def Main():
     connection = sqlite3.connect(db_path)
