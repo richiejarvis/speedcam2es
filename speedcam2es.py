@@ -69,8 +69,8 @@ def Main():
                 'speed' : row["ave_speed"],
                 'direction' : direction,
                 'source' : username,
-                'lat': 50.93,
-                'lng': -0.02
+                'lat': lat,
+                'lng': lng
                 }
 #        print(repr(record))
         url = (elasticsearch_url + camera_name + '-' + timestamp[0:10] + '/record/' + unique_hash).lower()
