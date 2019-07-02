@@ -60,15 +60,17 @@ def Main():
             break
         unique_hash = hashlib.sha1(str(tuple(row)) + camera_name).hexdigest()
         if row["direction"] == "L2R":
-            direction = "Southbound"
+            direction = l2r_direction
         else:
-            direction = "Northbound"
+            direction = r2l_direction
         timestamp =  make_date(row["idx"])
         record = {
                 '@timestamp' : timestamp,
                 'speed' : row["ave_speed"],
                 'direction' : direction,
-                'source' : camera_name
+                'source' : username,
+                'lat': 50.93,
+                'lng': -0.02
                 }
 #        print(repr(record))
         url = (elasticsearch_url + camera_name + '-' + timestamp[0:10] + '/record/' + unique_hash).lower()

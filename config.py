@@ -1,9 +1,9 @@
 # ---------------- User Configuration Settings for speedcam2es.py ---------------------------------
 #         Ver 0.0.1 speedcam2es.py Variable Configuration Settings
 version = "0.0.1"
-username = "chailey"
-password = "chailey123"
-elasticsearch_url = "https://jd:9243/chailey-"
+username = "grantham_close_1"
+password = "MunchSpeedForBrekky"
+elasticsearch_url = "https://e5fc3b57281449cf9b43aea35fb519fc.europe-west1.gcp.cloud.es.io:9243/chailey-"
 timezone = "Europe/London"
 db_path = '/home/pi/speedcam2es/data/speed_cam.db'
 db_table = 'speed'
@@ -11,3 +11,5 @@ db_table = 'speed'
 report_query = ('''select * from speed where log_hour = strftime('%H',time('now','+01:00')) and log_date = strftime('%Y%m%d',date('now')) order by idx desc''')
 #report_query = ('''select * from speed where log_date = strftime('%Y%m%d',date('now')) order by idx desc''')
 camera_name = "grantham_close_1"
+l2r_direction = "Southbound"
+r2l_direction = "Northbound"
