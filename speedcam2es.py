@@ -72,10 +72,13 @@ def Main():
                 'lat': lat,
                 'lng': lng
                 }
-        if (es_post((elasticsearch_url + '/record/' + unique_hash).lower(),record)) != 1:
-          print("retry1")
-          if (es_post((elasticsearch_url + '/record/' + unique_hash).lower(),record)) != 1:
-            print("retry2")
+        count = 1
+        while True:
+            if (es_post((elasticsearch_url + '/record/' + unique_hash).lower(),record)) != 1:
+              print("retry" + str(count))
+              count += 1
+              if count == 2:
+                  break
 #        print(url)
  
     cursor.close()
