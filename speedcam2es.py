@@ -74,7 +74,7 @@ def Main():
       unique_hash = hashlib.sha1(str(tuple(row)) + username).hexdigest()
       the_url = (elasticsearch_url + '/record/' + unique_hash).lower()
       status = 1
-      white status == 1 and retry < 5:
+      while status == 1 and retry < 5:
         status = es_post(the_url,record,speed,retry)
     cursor.close()
     connection.close
