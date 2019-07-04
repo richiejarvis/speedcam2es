@@ -73,8 +73,9 @@ def Main():
       retry = 0
       unique_hash = hashlib.sha1(str(tuple(row)) + username).hexdigest()
       the_url = (elasticsearch_url + '/record/' + unique_hash).lower()
-      if es_post(the_url,record,speed,retry) == 0:
-         es_post(the_url,record,speed,retry)
+      status = 1
+      white status == 1 and retry < 5:
+        status = es_post(the_url,record,speed,retry)
     cursor.close()
     connection.close
     print("Completed")
@@ -82,7 +83,7 @@ def Main():
 def make_date(string):
     # 0123456789012345
     # YYYYMMDD-hhmmsss
-    YYYY = string[0:4] 
+    YYYY = string[0:4]
     MM = string[4:6]
     DD = string[6:8]
     hh = string[9:11]
@@ -92,7 +93,7 @@ def make_date(string):
 
 def es_post(es,record,speed,retry):
     try:
-      resp = requests.post(es,auth=(username,password),verify=False,json=record)  
+      resp = requests.post(es,auth=(username,password),verify=False,json=record)
       print(" retry: " + str(retry) + " speed: " + str(speed) + " " + es )
     except:
       pass
