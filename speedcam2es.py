@@ -72,13 +72,17 @@ def Main():
                 'lat': lat,
                 'lng': lng
                 }
+<<<<<<< HEAD
 #        print(repr(record))
         url = (elasticsearch_url + '/record/' + unique_hash).lower()
+=======
+        if (es_post((elasticsearch_url + '/record/' + unique_hash).lower(),record)) != 1:
+          print("retry1")
+          if (es_post((elasticsearch_url + '/record/' + unique_hash).lower(),record)) != 1:
+            print("retry2")
+>>>>>>> af4426ec0c3c7e3a67fba235d8711e1869a150ff
 #        print(url)
-        resp = requests.post(url,auth=(username,password),verify=False,json=record)
-        print(str(record) + resp.text)
-        if resp.status_code not in (201,200):
-            break
+ 
     cursor.close()
     connection.close
     print("Completed")
@@ -93,6 +97,17 @@ def make_date(string):
     mm = string[11:13]
     string = (YYYY + '-' + MM + '-' + DD + 'T' + hh + ':'+ mm + ':00' + timezone).strip()
     return string
+
+def es_post(url,record):
+    #print(url)
+    try:
+      resp = requests.post(url,auth=(username,password),verify=False,json=record)
+      print(str(record) + resp.text)
+    except:
+      print("Connection to ES failed")
+      pass
+      return 0
+    return 1
 
 
 if __name__ == "__main__":
