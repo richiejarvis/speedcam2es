@@ -73,7 +73,7 @@ def Main():
                 'lng': lng
                 }
 #        print(repr(record))
-        url = (elasticsearch_url + camera_name + '-' + timestamp[0:10] + '/record/' + unique_hash).lower()
+        url = (elasticsearch_url + '/record/' + unique_hash).lower()
 #        print(url)
         resp = requests.post(url,auth=(username,password),verify=False,json=record)
         print(str(record) + resp.text)

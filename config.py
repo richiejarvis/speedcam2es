@@ -13,5 +13,5 @@ report_query = ('''select * from speed where log_hour = strftime('%H',time('now'
 camera_name = username
 l2r_direction = "Northbound"
 r2l_direction = "Southbound"
-lat = 50.946192
-lng = -0.021167
+lat = 50.946671
+lng = -0.020916
