@@ -1,6 +1,6 @@
 # ---------------- User Configuration Settings for speedcam2es.py ---------------------------------
-#         Ver 0.0.1 speedcam2es.py Variable Configuration Settings
-version = "0.0.2"
+#         speedcam2es.py Variable Configuration Settings
+version = "0.0.3"
 username = "grantham_close_1"
 password = "MunchSpeedForBrekky"
 elasticsearch_url = "https://e5fc3b57281449cf9b43aea35fb519fc.europe-west1.gcp.cloud.es.io:9243/chailey"

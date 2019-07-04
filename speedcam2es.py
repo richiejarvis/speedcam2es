@@ -95,7 +95,7 @@ def es_post(es,record,speed,retry):
       resp = requests.post(es,auth=(username,password),verify=False,json=record)  
       print(" retry: " + str(retry) + " speed: " + str(speed) + " " + es )
     except:
-      print(" retry: " + str(retry) + " : " + es + " : " + resp.text)
+      pass
       return 0
     return 1
 
