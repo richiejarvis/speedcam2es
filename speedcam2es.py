@@ -39,7 +39,7 @@ from config import *
 
 def Main():
     print("%s %s   Author:Richie Jarvis to work with Claude Pageau's speed_cam available here: https://github.com/pageauc/speed-camera" % (prog_name, version))
-    print("Version: %s" % (version))
+    print("Version: %s" % (speedcam2es_version))
     print("Author: Richie Jarvis")
     print("Date: 2019-07-01")
     print("GitHub: https://github.com/richiejarvis/speedcam2es")
