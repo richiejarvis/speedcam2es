@@ -12,14 +12,11 @@ from subprocess import check_output
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-
-
 my_path = os.path.abspath(__file__)  # Find the full path of this python script
 # get the path location only (excluding script name)
 base_dir = my_path[0:my_path.rfind("/")+1]
 base_file_name = my_path[my_path.rfind("/")+1:my_path.rfind(".")]
 prog_name = os.path.basename(__file__)
-
 # Check for variable file to import and error out if not found.
 config_file_path = os.path.join(base_dir, "config.py")
 if not os.path.exists(config_file_path):
@@ -52,37 +49,32 @@ def Main():
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
     cursor = connection.cursor()
-    # print(report_query)
     cursor.execute(report_query)
+    row_count = 0
     while True:
-        row = cursor.fetchone()
-        if row is None:
-            break
-        unique_hash = hashlib.sha1(str(tuple(row)) + camera_name).hexdigest()
-        if row["direction"] == "L2R":
-            direction = l2r_direction
-        else:
-            direction = r2l_direction
-        timestamp =  make_date(row["idx"])
-        record = {
-                '@timestamp' : timestamp,
-                'speed' : row["ave_speed"],
-                'direction' : direction,
-                'source' : username,
-                'lat': lat,
-                'lng': lng
-                }
-<<<<<<< HEAD
-#        print(repr(record))
-        url = (elasticsearch_url + '/record/' + unique_hash).lower()
-=======
-        if (es_post((elasticsearch_url + '/record/' + unique_hash).lower(),record)) != 1:
-          print("retry1")
-          if (es_post((elasticsearch_url + '/record/' + unique_hash).lower(),record)) != 1:
-            print("retry2")
->>>>>>> af4426ec0c3c7e3a67fba235d8711e1869a150ff
-#        print(url)
- 
+      row_count += 1
+      row = cursor.fetchone()
+      if row is None:
+        break
+      if row["direction"] == "L2R":
+        direction = l2r_direction
+      else:
+        direction = r2l_direction
+      timestamp = make_date(row["idx"])
+      speed = row["ave_speed"]
+      record = {
+        '@timestamp' : timestamp,
+        'speed' : speed,
+        'direction' : direction,
+        'source' : username,
+        'lat': lat,
+        'lng': lng
+      }
+      retry = 0
+      unique_hash = hashlib.sha1(str(tuple(row)) + username).hexdigest()
+      the_url = (elasticsearch_url + '/record/' + unique_hash).lower()
+      if (es_post(the_url,record,speed,retry)) == 0
+         es_post(the_url,record,speed,retry)
     cursor.close()
     connection.close
     print("Completed")
@@ -98,14 +90,12 @@ def make_date(string):
     string = (YYYY + '-' + MM + '-' + DD + 'T' + hh + ':'+ mm + ':00' + timezone).strip()
     return string
 
-def es_post(url,record):
-    #print(url)
+def es_post(es,record,speed,retry):
     try:
-      resp = requests.post(url,auth=(username,password),verify=False,json=record)
-      print(str(record) + resp.text)
+      resp = requests.post(es,auth=(username,password),verify=False,json=record)  
+      print(" retry: " + str(retry) + " speed: " + str(speed) + " " + es )
     except:
-      print("Connection to ES failed")
-      pass
+      print(" retry: " + str(retry) + " : " + es + " : " + resp.text)
       return 0
     return 1
 
