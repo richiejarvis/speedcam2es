@@ -40,13 +40,13 @@ def Main():
   print("Date: 2019-07-01")
   print("GitHub: https://github.com/richiejarvis/speedcam2es")
   print("Description: Convert speed-camera.py sqlite3 db to Elasticsearch Document.  With thanks to speed-camera.py written by Claude Pageau:  https://github.com/pageauc/speed-camera")
-  connection = sqlite3.connect(db_path)
-  connection.row_factory = sqlite3.Row
-  cursor = connection.cursor()
-  cursor.execute(report_query)
-  row_count = 0
-  record = ""
-  while retry <= retry_count:
+  while retry_count >= retry:
+    connection = sqlite3.connect(db_path)
+    connection.row_factory = sqlite3.Row
+    cursor = connection.cursor()
+    cursor.execute(report_query)
+    row_count = 0
+    record = ""
     print("Retries left: %s" % retry_count)
     while True:
       row_count += 1
@@ -56,16 +56,18 @@ def Main():
       direction = row["direction"]
       timestamp = make_date(row["idx"])
       speed = row["ave_speed"]
-    unique_hash = hashlib.sha1(username + str(retry_count)).hexdigest()
-    # print("DEBUG: speed: %s hash: %s" % (speed, unique_hash))
- # DB scrape done... mv alng
-    if direction == "L2R": 
-      direction = r2l_direction 
-    else:
-      direction = l2r_direction 
-    # Got everything we need - print it
-      record = { '@timestamp' : timestamp, 'speed' : speed, 'direction' : direction, 'source' : username, 'lat': lat, 'lng': lng }
-    url = str(elasticsearch_url + "/record/" + unique_hash).lower()
+  # DB scrape done... mv alng
+  unique_hash = hashlib.sha1(str(speed)).hexdigest()
+  print("DEBUG: speed: %s hash: %s" % (speed, unique_hash))
+  if direction == "L2R": 
+    direction = r2l_direction 
+  else:
+    direction = l2r_direction 
+  # Got everything we need - print it
+  record = { '@timestamp' : timestamp, 'speed' : speed, 'direction' : direction, 'source' : username, 'lat': lat, 'lng': lng }
+  url = str(elasticsearch_url + "/record/")
+  status == 1
+  while status == 0:
     status = es_post(url,record,speed,retry)
   cursor.close()
   connection.close
@@ -83,13 +85,14 @@ def make_date(string):
     return string
 
 def es_post(es,record,speed,retry):
- unique_hash = hashlib.sha1(username + str(retry_count)).hexdigest()
+ unique_hash = hashlib.sha1(es + str(retry_count)).hexdigest()
  try:
   resp = requests.post(es,auth=(username,password),verify=False,json=record)
   print(" Rtry: " + str(retry) + " spd: " + str(speed) + " " + unique_hash )
   retry =+ 1
  except:
-  pass
   return 0
+  pass
+ return 1
 if __name__ == "__main__":
     Main()
