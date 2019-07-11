@@ -1,3 +1,4 @@
 config.pyc
 **/__pycache__
 data/speed_cam.db
+config.py.*
