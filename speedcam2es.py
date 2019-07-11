@@ -82,17 +82,14 @@ def Main():
     connection.close
 
 def es_post(actual_time,record):
-    counter = 0
-    while counter< 2:
-        counter+=1
         url = (elasticsearch_url + username + '-' + actual_time).lower()
         resp = requests.post(url,auth=(username,password),verify=ssl_verify,json=record)
         resp_status_code = resp.status_code
-        if resp_status_code not in (201,200):
-            if debug:
-                print("DEBUG: retry")
-                es_post(url,record)
-        break
+        while resp_status_code not in (201,200):
+            time.sleep(5)
+            debug_mode("DEBUG: retry %s" % resp_status_code)
+            es_post(actual_time,record)
+            break
         return resp
 
 def make_date(string):
@@ -108,6 +105,7 @@ def make_date(string):
 
 def debug_mode(string):
     print(string)
+    while True: break
 
 
 if __name__ == "__main__":
