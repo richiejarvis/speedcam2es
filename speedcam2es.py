@@ -82,8 +82,11 @@ def Main():
     connection.close
 
 def es_post(actual_time,record):
+        unique_hash = 
         url = (elasticsearch_url + username + '-' + actual_time).lower()
+        debug_mode("DEBUG: url:%s" % (str(url)))
         resp = requests.post(url,auth=(username,password),verify=ssl_verify,json=record)
+        debug_mode("DEBUG: %s" % resp)
         resp_status_code = resp.status_code
         while resp_status_code not in (201,200):
             time.sleep(5)
