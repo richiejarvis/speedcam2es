@@ -49,31 +49,51 @@ def Main():
     connection.row_factory = sqlite3.Row
     cursor = connection.cursor()
     cursor.execute(report_query)
-    while True:
+    resp_status_code = 0
+    record = ""
+    speed = 0
+    timestamp = 0
+    counter = 0
+    while counter < 5:
+        counter+=1
+        # DEBUG mode
+        debug_mode("t:%s resp:%s speed:%s rec: %s" % (timestamp,str(resp_status_code),speed,str(record)))
         row = cursor.fetchone()
         if row is None:
             break
-        unique_hash = hashlib.sha1(str(tuple(row)) + camera_name).hexdigest()
         if row["direction"] == "L2R":
             direction = "Southbound"
         else:
             direction = "Northbound"
-        timestamp =  make_date(row["idx"])
+        actual_time =  row["idx"]
+        timestamp =  make_date(actual_time)
+        speed = row["ave_speed"] 
         record = {
                 '@timestamp' : timestamp,
-                'speed' : row["ave_speed"],
+                'actual_time': actual_time,
+                'speed' : speed,
                 'direction' : direction,
-                'source' : camera_name
+                'source' : username,
+                'speed_unit' : speed_unit
                 }
-#        print(repr(record))
-        url = (elasticsearch_url + camera_name + '-' + timestamp[0:10] + '/record/' + unique_hash).lower()
-#        print(url)
-        resp = requests.post(url,auth=(username,password),verify=False,json=record)
-        print(str(record) + str(resp))
-        if resp.status_code not in (201,200):
-            break
+        es_post(actual_time,record)
+
     cursor.close()
     connection.close
+
+def es_post(actual_time,record):
+    counter = 0
+    while counter< 2:
+        counter+=1
+        url = (elasticsearch_url + username + '-' + actual_time).lower()
+        resp = requests.post(url,auth=(username,password),verify=ssl_verify,json=record)
+        resp_status_code = resp.status_code
+        if resp_status_code not in (201,200):
+            if debug:
+                print("DEBUG: retry")
+                es_post(url,record)
+        break
+        return resp
 
 def make_date(string):
     # 0123456789012345
@@ -85,6 +105,9 @@ def make_date(string):
     mm = string[11:13]
     string = (YYYY + '-' + MM + '-' + DD + 'T' + hh + ':'+ mm + ':00' + timezone).strip()
     return string
+
+def debug_mode(string):
+    print(string)
 
 
 if __name__ == "__main__":
