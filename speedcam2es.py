@@ -5,14 +5,10 @@ import time
 import sys
 import os
 import hashlib
-import requests
 import urllib3
-import socket
-from subprocess import check_output
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-
+from elasticsearch import Elasticsearch
+from elasticsearch import helpers
 
 my_path = os.path.abspath(__file__)  # Find the full path of this python script
 # get the path location only (excluding script name)
@@ -40,24 +36,25 @@ if not os.path.exists(config_file_path):
 # Read Configuration variables from config.py file
 from config import *
 
+if ssl_verify == False:
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 horz_line = "----------------------------------------------------------------------"
 print(horz_line)
 print("%s %s   written by Richie Jarvis to work with Claude Pageau's speed_cam available here: https://github.com/pageauc/speed-camera" % (prog_name, version))
 
 def Main():
+    records = read_db()
+    debug_mode(records)  
+
+
+def read_db():
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
     cursor = connection.cursor()
-    cursor.execute(report_query)
-    resp_status_code = 0
-    record = ""
-    speed = 0
-    timestamp = 0
-    counter = 0
-    while counter < 5:
-        counter+=1
-        # DEBUG mode
-        debug_mode("t:%s resp:%s speed:%s rec: %s" % (timestamp,str(resp_status_code),speed,str(record)))
+    cursor.execute(report_query + " limit " + str(rows_limit))
+    records = ""
+    while True:
         row = cursor.fetchone()
         if row is None:
             break
@@ -68,24 +65,36 @@ def Main():
         actual_time =  row["idx"]
         timestamp =  make_date(actual_time)
         speed = row["ave_speed"] 
-        record = {
-                '@timestamp' : timestamp,
-                'actual_time': actual_time,
-                'speed' : speed,
-                'direction' : direction,
-                'source' : username,
-                'speed_unit' : speed_unit
-                }
-        es_post(actual_time,record)
-
+        speed_unit = row["speed_units"]
+        record = {"@timestamp" : timestamp,"actual_time": actual_time,"speed" : speed,"direction" : direction,"source" : es_username,"speed_unit" : speed_unit}
+        records = records + str(record)
+        debug_mode("t:%s" % (str(timestamp)))
+        debug_mode("t:%s" % (str(record)))
     cursor.close()
     connection.close
+    return records
+
+def write_to_es(records):
+    es = Elasticsearch([url],use_ssl=True,verify_certs=True,ssl_show_warn=True)
+    # Could add a cacerts path here ^^
+    es.indices.create(index=index_name,ignore=400)
+        
+
+        
+
+
 
 def es_post(actual_time,record):
-        unique_hash = 
-        url = (elasticsearch_url + username + '-' + actual_time).lower()
+        hash_text = username + actual_time
+        hash_obj = hashlib.md5(hash_text.encode())
+        hash_obj = hash_obj.hexdigest()
+        debug_mode("DEBUG: hash:%s" % (str(hash_obj)))
+
+        url = (elasticsearch_url + hash_obj).lower()
         debug_mode("DEBUG: url:%s" % (str(url)))
-        resp = requests.post(url,auth=(username,password),verify=ssl_verify,json=record)
+        debug_mode("DEBUG: rec:%s" % (str(record)))
+        resp = requests.post(url,auth=(username,password),verify=ssl_verify,data=record)
+        debug_mode(resp.text)
         debug_mode("DEBUG: %s" % resp)
         resp_status_code = resp.status_code
         while resp_status_code not in (201,200):
@@ -107,7 +116,7 @@ def make_date(string):
     return string
 
 def debug_mode(string):
-    print(string)
+    print("DBG:" + str(string))
     while True: break
 
 
